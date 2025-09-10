@@ -145,7 +145,7 @@ const Header = ({
             {user && profile ? (
               <div className="flex items-center gap-1 sm:gap-2">
                 {profile.is_admin && (
-                  <Button variant="outline" size="sm" onClick={() => window.location.href = '/admin'} className="hidden sm:inline-flex">
+                  <Button variant="outline" size="sm" onClick={onAdminClick} className="hidden sm:inline-flex">
                     Painel Admin
                   </Button>
                 )}
@@ -161,7 +161,7 @@ const Header = ({
                   e.preventDefault();
                   e.stopPropagation();
                   console.log('🔑 Auth button clicked');
-                  window.location.href = '/auth';
+                  onAuthClick();
                 }}
                 className="border-primary text-primary hover:bg-primary hover:text-primary-foreground touch-manipulation w-8 h-8 sm:w-auto sm:h-auto p-1 sm:px-3 sm:py-2"
               >
