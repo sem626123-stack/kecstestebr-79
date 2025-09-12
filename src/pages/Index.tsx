@@ -6,6 +6,7 @@ import CategoriesSection from '@/components/CategoriesSection';
 import FeaturedProducts from '@/components/FeaturedProducts';
 import BannerCarousel from '@/components/BannerCarousel';
 import ChatBot from '@/components/ChatBot';
+import PCBuilderCTA from '@/components/PCBuilderCTA';
 
 
 const Index = () => {
@@ -43,6 +44,7 @@ const Index = () => {
       {/* Home page with all sections */}
       <BannerCarousel />
       <FeaturedProducts />
+      <PCBuilderCTA />
       <CategoriesSection onCategorySelect={handleCategoryChange} />
       
       <Footer />

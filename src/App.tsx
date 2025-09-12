@@ -10,6 +10,7 @@ import AuthPageRoute from "./pages/AuthPage";
 import ProductsPage from "./pages/ProductsPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import AdminPage from "./pages/AdminPage";
+import PCBuilderPage from "./pages/PCBuilderPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -73,6 +74,7 @@ const App = () => (
             <Route path="/produtos" element={<ProductsPage />} />
             <Route path="/produto/:id" element={<ProductDetailPage />} />
             <Route path="/admin" element={<AdminPage />} />
+            <Route path="/monte-seu-pc" element={<PCBuilderPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
