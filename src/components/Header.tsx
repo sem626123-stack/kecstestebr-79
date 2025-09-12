@@ -4,8 +4,10 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import { useStoreCredentials } from "@/hooks/useStoreCredentials";
+import { useStoreSettings } from "@/hooks/useStoreSettings";
 import { useState, useEffect } from "react";
 import { supabasePublic as supabase } from "@/integrations/supabase/publicClient";
+import CartSheet from "@/components/Cart/CartSheet";
 
 interface Category {
   id: string;
@@ -32,6 +34,7 @@ const Header = ({
 }: HeaderProps) => {
   const { user, profile, signOut } = useAuth();
   const { redirectToWhatsApp, currentSector } = useStoreCredentials();
+  const { salesEnabled } = useStoreSettings();
   const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
@@ -142,6 +145,9 @@ const Header = ({
 
           {/* User Info and Actions */}
           <div className="flex items-center gap-1 sm:gap-2">
+            {/* Cart Button - Only show if sales are enabled */}
+            {salesEnabled && <CartSheet />}
+            
             {/* WhatsApp Button */}
             <Button
               variant="outline"

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MessageCircle, ShoppingCart, Eye } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import AddToCartButton from '@/components/Product/AddToCartButton';
 
 interface Product {
   id: string;
@@ -206,26 +207,34 @@ const ProductList = ({ searchTerm, selectedCategory }: ProductListProps) => {
                     )}
                   </div>
 
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <div>
-                      <div className="text-xl md:text-2xl font-bold text-blue-600">
-                        R$ {(profile?.setor === 'revenda' ? product.price_revenda : product.price_varejo)?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '0,00'}
-                      </div>
-                      {profile?.setor === 'revenda' && (
-                        <div className="text-xs text-green-600 font-medium">
-                          Preço Revenda
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <div>
+                        <div className="text-xl md:text-2xl font-bold text-blue-600">
+                          R$ {(profile?.setor === 'revenda' ? product.price_revenda : product.price_varejo)?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '0,00'}
                         </div>
-                      )}
-                    </div>
+                        {profile?.setor === 'revenda' && (
+                          <div className="text-xs text-green-600 font-medium">
+                            Preço Revenda
+                          </div>
+                        )}
+                      </div>
 
-                    <Button 
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-6 h-10 md:h-12 w-full sm:w-auto"
-                      onClick={() => handleWhatsAppContact(product)}
-                    >
-                      <ShoppingCart className="h-4 w-4 mr-2" />
-                      Consultar
-                    </Button>
-                  </div>
+                      <div className="flex gap-2">
+                        <AddToCartButton 
+                          product={product}
+                          variant="default"
+                          className="flex-1 sm:flex-none"
+                        />
+                        <Button 
+                          variant="outline"
+                          className="bg-green-500 hover:bg-green-600 text-white border-green-500 px-6 h-10 md:h-12 flex-1 sm:flex-none"
+                          onClick={() => handleWhatsAppContact(product)}
+                        >
+                          <MessageCircle className="h-4 w-4 mr-2" />
+                          Consultar
+                        </Button>
+                      </div>
+                    </div>
                 </CardContent>
               </div>
             </Card>
@@ -282,14 +291,23 @@ const ProductList = ({ searchTerm, selectedCategory }: ProductListProps) => {
                   )}
                 </div>
 
-                <Button 
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white h-7 sm:h-10 md:h-12 text-xs sm:text-sm md:text-base"
-                  onClick={() => handleWhatsAppContact(product)}
-                >
-                  <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  <span className="hidden sm:inline">Consultar</span>
-                  <span className="sm:hidden">Comprar</span>
-                </Button>
+                <div className="space-y-2">
+                  <AddToCartButton 
+                    product={product}
+                    variant="default"
+                    size="sm"
+                    className="w-full h-7 sm:h-10 md:h-12 text-xs sm:text-sm md:text-base"
+                  />
+                  <Button 
+                    variant="outline"
+                    className="w-full bg-green-500 hover:bg-green-600 text-white border-green-500 h-7 sm:h-10 md:h-12 text-xs sm:text-sm md:text-base"
+                    onClick={() => handleWhatsAppContact(product)}
+                  >
+                    <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                    <span className="hidden sm:inline">Consultar</span>
+                    <span className="sm:hidden">Contato</span>
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}

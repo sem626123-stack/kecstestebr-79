@@ -9,6 +9,7 @@ import CategoryManagement from './CategoryManagement';
 import ClientManagement from './ClientManagement';
 import FeaturedProductsManagement from './FeaturedProductsManagement';
 import StoreCredentialsManagement from './StoreCredentialsManagement';
+import StoreSettingsManagement from './StoreSettingsManagement';
 
 interface AdminDashboardProps {
   onBack: () => void;
@@ -48,7 +49,7 @@ const AdminDashboard = ({ onBack }: AdminDashboardProps) => {
 
       <div className="container mx-auto p-6">
         <Tabs defaultValue="products" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="products" className="flex items-center gap-2">
               <Package className="h-4 w-4" />
               Produtos
@@ -72,6 +73,10 @@ const AdminDashboard = ({ onBack }: AdminDashboardProps) => {
             <TabsTrigger value="credentials" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
               Credenciais
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Configurações
             </TabsTrigger>
           </TabsList>
 
@@ -97,6 +102,10 @@ const AdminDashboard = ({ onBack }: AdminDashboardProps) => {
 
           <TabsContent value="credentials">
             <StoreCredentialsManagement />
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <StoreSettingsManagement />
           </TabsContent>
         </Tabs>
       </div>

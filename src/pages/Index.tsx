@@ -44,8 +44,8 @@ const Index = () => {
       {/* Home page with all sections */}
       <BannerCarousel />
       <FeaturedProducts />
-      <PCBuilderCTA />
       <CategoriesSection onCategorySelect={handleCategoryChange} />
+      <PCBuilderCTA />
       
       <Footer />
       <ChatBot />
