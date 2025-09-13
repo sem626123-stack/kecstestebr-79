@@ -4,7 +4,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Check, MessageCircle } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Check, MessageCircle, Search } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { SelectedComponent } from '@/pages/PCBuilderPage';
 
@@ -30,7 +31,9 @@ const PCComponentSelector = ({
   selectedComponent
 }: PCComponentSelectorProps) => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
   const { profile } = useAuth();
 
   useEffect(() => {
@@ -52,6 +55,7 @@ const PCComponentSelector = ({
             .limit(20);
 
           setProducts(productsData || []);
+          setFilteredProducts(productsData || []);
         } else {
           // Fallback: search by product name containing category
           const { data: productsData } = await supabase
@@ -61,6 +65,7 @@ const PCComponentSelector = ({
             .limit(20);
 
           setProducts(productsData || []);
+          setFilteredProducts(productsData || []);
         }
       } catch (error) {
         console.error('Erro ao buscar produtos:', error);
@@ -72,6 +77,19 @@ const PCComponentSelector = ({
 
     fetchProducts();
   }, [category]);
+
+  // Filter products based on search term
+  useEffect(() => {
+    if (searchTerm.trim() === '') {
+      setFilteredProducts(products);
+    } else {
+      const filtered = products.filter(product =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (product.sku && product.sku.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+      setFilteredProducts(filtered);
+    }
+  }, [searchTerm, products]);
 
   const getPrice = (product: Product) => {
     return profile?.setor === 'revenda' ? product.price_revenda : product.price_varejo;
@@ -118,8 +136,28 @@ Gostaria de mais informações!`;
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {products.map((product) => {
+    <div className="space-y-4">
+      {/* Search Input */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+        <Input
+          placeholder="Buscar produtos nesta categoria..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10"
+        />
+      </div>
+
+      {/* Products Grid */}
+      {filteredProducts.length === 0 && searchTerm ? (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">
+            Nenhum produto encontrado para "{searchTerm}".
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredProducts.map((product) => {
         const price = getPrice(product);
         const isSelected = selectedComponent?.id === product.id;
 
@@ -129,7 +167,7 @@ Gostaria de mais informações!`;
           }`}>
             <CardContent className="p-4">
               {/* Product Image */}
-              <div className="aspect-square mb-4 bg-muted rounded-lg overflow-hidden">
+              <div className="h-32 mb-3 bg-muted rounded-lg overflow-hidden">
                 {product.image_url ? (
                   <img
                     src={product.image_url}
@@ -137,7 +175,7 @@ Gostaria de mais informações!`;
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                  <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
                     Sem imagem
                   </div>
                 )}
@@ -188,6 +226,8 @@ Gostaria de mais informações!`;
           </Card>
         );
       })}
+        </div>
+      )}
     </div>
   );
 };
