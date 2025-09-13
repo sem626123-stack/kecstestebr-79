@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { LogOut, Package, Image, Tags, Users, Star, Settings } from 'lucide-react';
+import { LogOut, Package, Image, Tags, Users, Star, Settings, Key } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import ProductManagement from './ProductManagement';
 import BannerManagement from './BannerManagement';
@@ -10,6 +10,7 @@ import ClientManagement from './ClientManagement';
 import FeaturedProductsManagement from './FeaturedProductsManagement';
 import StoreCredentialsManagement from './StoreCredentialsManagement';
 import StoreSettingsManagement from './StoreSettingsManagement';
+import PreBuiltPCsManagement from './PreBuiltPCsManagement';
 
 interface AdminDashboardProps {
   onBack: () => void;
@@ -17,6 +18,17 @@ interface AdminDashboardProps {
 
 const AdminDashboard = ({ onBack }: AdminDashboardProps) => {
   const { signOut, profile } = useAuth();
+
+  const tabs = [
+    { id: 'products', label: 'Produtos', icon: Package },
+    { id: 'categories', label: 'Categorias', icon: Tags },
+    { id: 'clients', label: 'Clientes', icon: Users },
+    { id: 'banners', label: 'Banners', icon: Image },
+    { id: 'featured', label: 'Destaques', icon: Star },
+    { id: 'prebuilt', label: 'PCs Prontos', icon: Package },
+    { id: 'credentials', label: 'Credenciais', icon: Key },
+    { id: 'settings', label: 'Configurações', icon: Settings },
+  ];
 
   const handleSignOut = async () => {
     await signOut();
@@ -49,64 +61,48 @@ const AdminDashboard = ({ onBack }: AdminDashboardProps) => {
 
       <div className="container mx-auto p-6">
         <Tabs defaultValue="products" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
-            <TabsTrigger value="products" className="flex items-center gap-2">
-              <Package className="h-4 w-4" />
-              Produtos
-            </TabsTrigger>
-            <TabsTrigger value="featured" className="flex items-center gap-2">
-              <Star className="h-4 w-4" />
-              Destaques
-            </TabsTrigger>
-            <TabsTrigger value="banners" className="flex items-center gap-2">
-              <Image className="h-4 w-4" />
-              Banners
-            </TabsTrigger>
-            <TabsTrigger value="categories" className="flex items-center gap-2">
-              <Tags className="h-4 w-4" />
-              Categorias
-            </TabsTrigger>
-            <TabsTrigger value="clients" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Clientes
-            </TabsTrigger>
-            <TabsTrigger value="credentials" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              Credenciais
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              Configurações
-            </TabsTrigger>
+          <TabsList className="grid w-full grid-cols-8">
+            {tabs.map((tab) => (
+              <TabsTrigger key={tab.id} value={tab.id} className="flex items-center gap-2">
+                <tab.icon className="h-4 w-4" />
+                {tab.label}
+              </TabsTrigger>
+            ))}
           </TabsList>
 
-          <TabsContent value="products">
-            <ProductManagement />
-          </TabsContent>
+          <div className="mt-6">
+            <TabsContent value="products">
+              <ProductManagement />
+            </TabsContent>
 
-          <TabsContent value="featured">
-            <FeaturedProductsManagement />
-          </TabsContent>
+            <TabsContent value="featured">
+              <FeaturedProductsManagement />
+            </TabsContent>
 
-          <TabsContent value="banners">
-            <BannerManagement />
-          </TabsContent>
+            <TabsContent value="banners">
+              <BannerManagement />
+            </TabsContent>
 
-          <TabsContent value="categories">
-            <CategoryManagement />
-          </TabsContent>
+            <TabsContent value="categories">
+              <CategoryManagement />
+            </TabsContent>
 
-          <TabsContent value="clients">
-            <ClientManagement />
-          </TabsContent>
+            <TabsContent value="clients">
+              <ClientManagement />
+            </TabsContent>
 
-          <TabsContent value="credentials">
-            <StoreCredentialsManagement />
-          </TabsContent>
+            <TabsContent value="credentials">
+              <StoreCredentialsManagement />
+            </TabsContent>
 
-          <TabsContent value="settings">
-            <StoreSettingsManagement />
-          </TabsContent>
+            <TabsContent value="settings">
+              <StoreSettingsManagement />
+            </TabsContent>
+            
+            <TabsContent value="prebuilt">
+              <PreBuiltPCsManagement />
+            </TabsContent>
+          </div>
         </Tabs>
       </div>
     </div>

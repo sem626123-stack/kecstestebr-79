@@ -7,6 +7,7 @@ import AuthPage from '@/components/Auth/AuthPage';
 import AdminDashboard from '@/components/Admin/AdminDashboard';
 import PCBuilderSteps from '@/components/PCBuilder/PCBuilderSteps';
 import PCBuilderSummary from '@/components/PCBuilder/PCBuilderSummary';
+import PreBuiltPCsList from '@/components/PCBuilder/PreBuiltPCsList';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -25,6 +26,7 @@ const PCBuilderPage = () => {
   const [showAdmin, setShowAdmin] = useState(false);
   const [selectedComponents, setSelectedComponents] = useState<SelectedComponent[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
+  const [showPreBuiltPCs, setShowPreBuiltPCs] = useState(false);
 
   // Scroll to top when page loads
   useEffect(() => {
@@ -88,33 +90,53 @@ const PCBuilderPage = () => {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
               Monte seu PC
             </h1>
-            <p className="text-gray-600">
+            <p className="text-gray-600 mb-4">
               Siga o passo a passo e monte o PC dos seus sonhos
             </p>
+            
+            {/* Toggle between custom build and pre-built PCs */}
+            <div className="flex gap-2">
+              <Button
+                variant={!showPreBuiltPCs ? "default" : "outline"}
+                onClick={() => setShowPreBuiltPCs(false)}
+              >
+                Montar Personalizado
+              </Button>
+              <Button
+                variant={showPreBuiltPCs ? "default" : "outline"}
+                onClick={() => setShowPreBuiltPCs(true)}
+              >
+                PCs Prontos para Jogos
+              </Button>
+            </div>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Área principal - Steps */}
-            <div className="lg:col-span-2">
-              <PCBuilderSteps
-                currentStep={currentStep}
-                onStepChange={handleStepChange}
-                onComponentSelect={handleComponentSelect}
-                selectedComponents={selectedComponents}
-              />
-            </div>
-            
-            {/* Painel lateral - Resumo */}
-            <div className="lg:col-span-1">
-              <div className="lg:sticky lg:top-8">
-                <PCBuilderSummary
-                  selectedComponents={selectedComponents}
-                  onComponentRemove={handleComponentRemove}
+          {showPreBuiltPCs ? (
+            <PreBuiltPCsList />
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Área principal - Steps */}
+              <div className="lg:col-span-2">
+                <PCBuilderSteps
+                  currentStep={currentStep}
                   onStepChange={handleStepChange}
+                  onComponentSelect={handleComponentSelect}
+                  selectedComponents={selectedComponents}
                 />
               </div>
+              
+              {/* Painel lateral - Resumo */}
+              <div className="lg:col-span-1">
+                <div className="lg:sticky lg:top-8">
+                  <PCBuilderSummary
+                    selectedComponents={selectedComponents}
+                    onComponentRemove={handleComponentRemove}
+                    onStepChange={handleStepChange}
+                  />
+                </div>
+              </div>
             </div>
-          </div>
+          )}
         </main>
       </div>
       
