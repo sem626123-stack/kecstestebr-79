@@ -1,22 +1,20 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect } from 'react';
+import { createClient } from '@supabase/supabase-js';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
-import { Loader2, Save } from 'lucide-react';
+import { toast } from 'sonner';
+import type { StoreSettings } from '@/types/database';
 
-interface StoreSettings {
-  enable_sales: boolean;
-}
-
-const SETTINGS_STORAGE_KEY = 'kecinforstore_settings';
+// Use cliente público para tabelas não definidas nos tipos gerados  
+const supabasePublic = createClient(
+  "https://btjullcrugzilpnxjoyr.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ0anVsbGNydWd6aWxwbnhqb3lyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxNzU1OTgsImV4cCI6MjA3Mjc1MTU5OH0.lBmJsUovvaIhf2dS9LNO1oRrk7ZPaGfCISJHwLlZu9Y"
+);
 
 const StoreSettingsManagement = () => {
-  const [settings, setSettings] = useState<StoreSettings>({ enable_sales: false });
+  const [settings, setSettings] = useState<StoreSettings | null>(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const { toast } = useToast();
 
   useEffect(() => {
     fetchSettings();
@@ -24,111 +22,92 @@ const StoreSettingsManagement = () => {
 
   const fetchSettings = async () => {
     try {
-      console.log('📡 Loading store settings from localStorage...');
-      const savedSettings = localStorage.getItem(SETTINGS_STORAGE_KEY);
-      
-      if (savedSettings) {
-        const parsedSettings = JSON.parse(savedSettings);
-        setSettings(parsedSettings);
-        console.log('✅ Settings loaded:', parsedSettings);
+      const { data, error } = await supabasePublic
+        .from('store_settings')
+        .select('*')
+        .single();
+
+      if (error) {
+        // Se não existir configuração, criar uma
+        const { data: newData, error: insertError } = await supabasePublic
+          .from('store_settings')
+          .insert({ enable_sales: false })
+          .select()
+          .single();
+
+        if (insertError) throw insertError;
+        setSettings(newData as StoreSettings);
       } else {
-        console.log('📝 No settings found, using defaults');
+        setSettings(data as StoreSettings);
       }
     } catch (error) {
-      console.error('❌ Error loading settings:', error);
+      console.error('Erro ao carregar configurações:', error);
+      toast.error('Erro ao carregar configurações da loja');
     } finally {
       setLoading(false);
     }
   };
 
-  const saveSettings = async () => {
-    setSaving(true);
+  const updateSettings = async (enable_sales: boolean) => {
+    if (!settings) return;
+
     try {
-      console.log('💾 Saving settings:', settings);
-      
-      localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
-      
-      // Dispatch event to notify other components
-      window.dispatchEvent(new CustomEvent('storeSettingsChanged', { detail: settings }));
+      const { error } = await supabasePublic
+        .from('store_settings')
+        .update({ enable_sales })
+        .eq('id', settings.id);
 
-      toast({
-        title: "Sucesso",
-        description: "Configurações salvas com sucesso!"
-      });
-
-      console.log('✅ Settings saved successfully');
+      if (error) throw error;
+      
+      setSettings({ ...settings, enable_sales });
+      toast.success('Configurações atualizadas com sucesso!');
+      
+      // Dispara evento para atualizar outros componentes
+      window.dispatchEvent(new CustomEvent('storeSettingsChanged', { 
+        detail: { ...settings, enable_sales }
+      }));
     } catch (error) {
-      console.error('❌ Error saving settings:', error);
-      toast({
-        title: "Erro",
-        description: "Erro ao salvar configurações",
-        variant: "destructive"
-      });
-    } finally {
-      setSaving(false);
+      console.error('Erro ao atualizar configurações:', error);
+      toast.error('Erro ao salvar configurações');
     }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Configurações da Loja</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div>Carregando...</div>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Configurações da Loja</CardTitle>
-          <CardDescription>
-            Configure as funcionalidades disponíveis na sua loja
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <Label htmlFor="enable-sales" className="text-base font-medium">
-                  Ativar Vendas Online
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  Permite que clientes adicionem produtos ao carrinho e façam pedidos
-                </p>
-              </div>
-              <Switch
-                id="enable-sales"
-                checked={settings.enable_sales}
-                onCheckedChange={(checked) => 
-                  setSettings(prev => ({ ...prev, enable_sales: checked }))
-                }
-              />
+    <Card>
+      <CardHeader>
+        <CardTitle>Configurações da Loja</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <Label htmlFor="sales-toggle" className="text-base">
+              Vendas Online
+            </Label>
+            <div className="text-[0.8rem] text-muted-foreground">
+              Ative para permitir que clientes adicionem produtos ao carrinho e finalizem pedidos via WhatsApp
             </div>
           </div>
-
-          <div className="pt-4 border-t">
-            <Button 
-              onClick={saveSettings} 
-              disabled={saving}
-              className="w-full sm:w-auto"
-            >
-              {saving ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Salvando...
-                </>
-              ) : (
-                <>
-                  <Save className="h-4 w-4 mr-2" />
-                  Salvar Configurações
-                </>
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+          <Switch
+            id="sales-toggle"
+            checked={settings?.enable_sales || false}
+            onCheckedChange={updateSettings}
+          />
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

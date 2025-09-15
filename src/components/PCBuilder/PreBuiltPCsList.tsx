@@ -1,33 +1,18 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { createClient } from '@supabase/supabase-js';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MessageCircle, Monitor, Cpu, HardDrive, MemoryStick } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import type { PreBuiltPC } from '@/types/database';
 
-interface PreBuiltPC {
-  id: string;
-  name: string;
-  description: string;
-  price_varejo: number;
-  price_revenda: number;
-  image_url?: string;
-  components: {
-    gabinete: string;
-    processador: string;
-    placa_mae: string;
-    memoria_ram: string;
-    cooler: string;
-    fonte: string;
-    armazenamento: string;
-    mouse: string;
-    teclado: string;
-    monitor: string;
-    mouse_pad: string;
-  };
-}
+// Use cliente público para tabelas não definidas nos tipos gerados
+const supabasePublic = createClient(
+  "https://btjullcrugzilpnxjoyr.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ0anVsbGNydWd6aWxwbnhqb3lyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxNzU1OTgsImV4cCI6MjA3Mjc1MTU5OH0.lBmJsUovvaIhf2dS9LNO1oRrk7ZPaGfCISJHwLlZu9Y"
+);
 
 const PreBuiltPCsList = () => {
   const [preBuiltPCs, setPreBuiltPCs] = useState<PreBuiltPC[]>([]);
@@ -40,13 +25,13 @@ const PreBuiltPCsList = () => {
 
   const fetchPreBuiltPCs = async () => {
     try {
-      const { data, error } = await supabase
-        .from('prebuilt_pcs' as any)
+      const { data, error } = await supabasePublic
+        .from('prebuilt_pcs')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setPreBuiltPCs((data as any) || []);
+      setPreBuiltPCs((data as PreBuiltPC[]) || []);
     } catch (error) {
       console.error('Erro ao buscar PCs prontos:', error);
     } finally {
