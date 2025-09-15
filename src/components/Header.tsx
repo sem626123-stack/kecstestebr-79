@@ -8,6 +8,7 @@ import { useStoreSettings } from "@/hooks/useStoreSettings";
 import { useState, useEffect } from "react";
 import { supabasePublic as supabase } from "@/integrations/supabase/publicClient";
 import CartSheet from "@/components/Cart/CartSheet";
+import { Link } from "react-router-dom";
 
 interface Category {
   id: string;
@@ -78,9 +79,11 @@ const Header = ({
         <div className="flex items-center justify-between gap-2">
           {/* Logo */}
           <div className="flex items-center gap-4">
-            <h1 className="text-lg sm:text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent animate-fade-in">
-              KECINFORSTORE
-            </h1>
+            <Link to="/">
+              <h1 className="text-lg sm:text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent animate-fade-in cursor-pointer hover:opacity-80 transition-opacity">
+                KECINFORSTORE
+              </h1>
+            </Link>
             
             {/* Monte seu PC Button */}
             <Button
