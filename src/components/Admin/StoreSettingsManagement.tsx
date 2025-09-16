@@ -1,16 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { supabasePublic } from '@/integrations/supabase/publicClient';
 import type { StoreSettings } from '@/types/database';
-
-// Use cliente público para tabelas não definidas nos tipos gerados  
-const supabasePublic = createClient(
-  "https://btjullcrugzilpnxjoyr.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ0anVsbGNydWd6aWxwbnhqb3lyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxNzU1OTgsImV4cCI6MjA3Mjc1MTU5OH0.lBmJsUovvaIhf2dS9LNO1oRrk7ZPaGfCISJHwLlZu9Y"
-);
 
 const StoreSettingsManagement = () => {
   const [settings, setSettings] = useState<StoreSettings | null>(null);
@@ -22,14 +16,14 @@ const StoreSettingsManagement = () => {
 
   const fetchSettings = async () => {
     try {
-      const { data, error } = await supabasePublic
+      const { data, error } = await (supabasePublic as any)
         .from('store_settings')
         .select('*')
         .single();
 
       if (error) {
         // Se não existir configuração, criar uma
-        const { data: newData, error: insertError } = await supabasePublic
+        const { data: newData, error: insertError } = await (supabasePublic as any)
           .from('store_settings')
           .insert({ enable_sales: false })
           .select()
@@ -52,7 +46,7 @@ const StoreSettingsManagement = () => {
     if (!settings) return;
 
     try {
-      const { error } = await supabasePublic
+      const { error } = await (supabasePublic as any)
         .from('store_settings')
         .update({ enable_sales })
         .eq('id', settings.id);

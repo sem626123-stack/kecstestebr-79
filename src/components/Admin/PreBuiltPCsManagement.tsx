@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,13 +9,8 @@ import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Trash2, Edit, Plus, Save, X, Upload } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabasePublic } from '@/integrations/supabase/publicClient';
 import type { PreBuiltPC } from '@/types/database';
-
-// Use cliente público para tabelas não definidas nos tipos gerados
-const supabasePublic = createClient(
-  "https://btjullcrugzilpnxjoyr.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ0anVsbGNydWd6aWxwbnhqb3lyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxNzU1OTgsImV4cCI6MjA3Mjc1MTU5OH0.lBmJsUovvaIhf2dS9LNO1oRrk7ZPaGfCISJHwLlZu9Y"
-);
 
 interface Product {
   id: string;
@@ -60,7 +54,7 @@ const PreBuiltPCsManagement = () => {
 
   const fetchPreBuiltPCs = async () => {
     try {
-      const { data, error } = await supabasePublic
+      const { data, error } = await (supabasePublic as any)
         .from('prebuilt_pcs')
         .select('*')
         .order('created_at', { ascending: false });
@@ -92,7 +86,7 @@ const PreBuiltPCsManagement = () => {
   const handleSave = async () => {
     try {
       if (editingPC) {
-        const { error } = await supabasePublic
+        const { error } = await (supabasePublic as any)
           .from('prebuilt_pcs')
           .update(formData)
           .eq('id', editingPC.id);
@@ -100,7 +94,7 @@ const PreBuiltPCsManagement = () => {
         if (error) throw error;
         toast.success('PC atualizado com sucesso!');
       } else {
-        const { error } = await supabasePublic
+        const { error } = await (supabasePublic as any)
           .from('prebuilt_pcs')
           .insert(formData);
 
@@ -122,7 +116,7 @@ const PreBuiltPCsManagement = () => {
     if (!confirm('Tem certeza que deseja excluir este PC?')) return;
 
     try {
-      const { error } = await supabasePublic
+      const { error } = await (supabasePublic as any)
         .from('prebuilt_pcs')
         .delete()
         .eq('id', id);
@@ -192,13 +186,13 @@ const PreBuiltPCsManagement = () => {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}.${fileExt}`;
 
-      const { error: uploadError } = await supabasePublic.storage
+      const { error: uploadError } = await (supabasePublic as any).storage
         .from('prebuilt-pcs')
         .upload(fileName, file);
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabasePublic.storage
+      const { data: { publicUrl } } = (supabasePublic as any).storage
         .from('prebuilt-pcs')
         .getPublicUrl(fileName);
 

@@ -1,18 +1,12 @@
 import { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MessageCircle, Monitor, Cpu, HardDrive, MemoryStick } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { supabasePublic } from '@/integrations/supabase/publicClient';
 import type { PreBuiltPC } from '@/types/database';
-
-// Use cliente público para tabelas não definidas nos tipos gerados
-const supabasePublic = createClient(
-  "https://btjullcrugzilpnxjoyr.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ0anVsbGNydWd6aWxwbnhqb3lyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxNzU1OTgsImV4cCI6MjA3Mjc1MTU5OH0.lBmJsUovvaIhf2dS9LNO1oRrk7ZPaGfCISJHwLlZu9Y"
-);
 
 const PreBuiltPCsList = () => {
   const [preBuiltPCs, setPreBuiltPCs] = useState<PreBuiltPC[]>([]);
@@ -25,7 +19,7 @@ const PreBuiltPCsList = () => {
 
   const fetchPreBuiltPCs = async () => {
     try {
-      const { data, error } = await supabasePublic
+      const { data, error } = await (supabasePublic as any)
         .from('prebuilt_pcs')
         .select('*')
         .order('created_at', { ascending: false });
