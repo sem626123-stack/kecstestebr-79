@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Trash2, Edit, Plus, Save, X } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Trash2, Edit, Plus, Save, X, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import type { PreBuiltPC } from '@/types/database';
 
@@ -17,11 +18,19 @@ const supabasePublic = createClient(
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ0anVsbGNydWd6aWxwbnhqb3lyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxNzU1OTgsImV4cCI6MjA3Mjc1MTU5OH0.lBmJsUovvaIhf2dS9LNO1oRrk7ZPaGfCISJHwLlZu9Y"
 );
 
+interface Product {
+  id: string;
+  name: string;
+  category_id: string | null;
+}
+
 const PreBuiltPCsManagement = () => {
   const [preBuiltPCs, setPreBuiltPCs] = useState<PreBuiltPC[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingPC, setEditingPC] = useState<PreBuiltPC | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -46,6 +55,7 @@ const PreBuiltPCsManagement = () => {
 
   useEffect(() => {
     fetchPreBuiltPCs();
+    fetchProducts();
   }, []);
 
   const fetchPreBuiltPCs = async () => {
@@ -62,6 +72,20 @@ const PreBuiltPCsManagement = () => {
       toast.error('Erro ao carregar PCs prontos');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      const { data, error } = await supabasePublic
+        .from('products')
+        .select('id, name, category_id')
+        .order('name', { ascending: true });
+
+      if (error) throw error;
+      setProducts(data || []);
+    } catch (error) {
+      console.error('Erro ao buscar produtos:', error);
     }
   };
 
@@ -154,6 +178,48 @@ const PreBuiltPCsManagement = () => {
     resetForm();
   };
 
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Arquivo muito grande. Máximo 5MB.');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabasePublic.storage
+        .from('prebuilt-pcs')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabasePublic.storage
+        .from('prebuilt-pcs')
+        .getPublicUrl(fileName);
+
+      setFormData(prev => ({ ...prev, image_url: publicUrl }));
+      toast.success('Imagem enviada com sucesso!');
+    } catch (error) {
+      console.error('Erro ao fazer upload:', error);
+      toast.error('Erro ao enviar imagem');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const getProductsByCategory = (categoryName: string) => {
+    return products.filter(product => {
+      if (!product.category_id) return false;
+      // Simplificado: buscar produtos que contenham parte do nome da categoria
+      return product.name.toLowerCase().includes(categoryName.toLowerCase());
+    });
+  };
+
   if (loading) {
     return <div>Carregando...</div>;
   }
@@ -185,13 +251,43 @@ const PreBuiltPCsManagement = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="image_url">URL da Imagem</Label>
-                <Input
-                  id="image_url"
-                  value={formData.image_url}
-                  onChange={(e) => setFormData(prev => ({ ...prev, image_url: e.target.value }))}
-                  placeholder="https://..."
-                />
+                <Label htmlFor="image_url">Imagem do PC</Label>
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <Input
+                      id="image_url"
+                      value={formData.image_url}
+                      onChange={(e) => setFormData(prev => ({ ...prev, image_url: e.target.value }))}
+                      placeholder="URL da imagem ou faça upload"
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => document.getElementById('file-upload')?.click()}
+                      disabled={uploading}
+                    >
+                      <Upload className="w-4 h-4 mr-2" />
+                      {uploading ? 'Enviando...' : 'Upload'}
+                    </Button>
+                  </div>
+                  <input
+                    id="file-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                  {formData.image_url && (
+                    <div className="h-32 w-32 rounded-lg overflow-hidden border">
+                      <img
+                        src={formData.image_url}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -230,25 +326,44 @@ const PreBuiltPCsManagement = () => {
             <h3 className="text-lg font-semibold">Componentes</h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Object.entries(formData.components).map(([key, value]) => (
-                <div key={key}>
-                  <Label htmlFor={key}>
-                    {key.charAt(0).toUpperCase() + key.slice(1).replace('_', ' ')}
-                  </Label>
-                  <Input
-                    id={key}
-                    value={value}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      components: {
-                        ...prev.components,
-                        [key]: e.target.value
-                      }
-                    }))}
-                    placeholder={`Nome do ${key.replace('_', ' ')}`}
-                  />
-                </div>
-              ))}
+              {Object.entries(formData.components).map(([key, value]) => {
+                const categoryProducts = getProductsByCategory(key);
+                
+                return (
+                  <div key={key}>
+                    <Label htmlFor={key}>
+                      {key.charAt(0).toUpperCase() + key.slice(1).replace('_', ' ')}
+                    </Label>
+                    <Select
+                      value={value}
+                      onValueChange={(newValue) => setFormData(prev => ({
+                        ...prev,
+                        components: {
+                          ...prev.components,
+                          [key]: newValue
+                        }
+                      }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={`Selecione ${key.replace('_', ' ')}`} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categoryProducts.length > 0 ? (
+                          categoryProducts.map((product) => (
+                            <SelectItem key={product.id} value={product.name}>
+                              {product.name}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="" disabled>
+                            Nenhum produto encontrado
+                          </SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                );
+              })}
             </div>
 
             <div className="flex gap-2">
